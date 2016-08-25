@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cp /bip6_disk/chaohung103/strideMergeTrimMatepair/FMIndexWalk/FMIndexWalkProcess.* /bip7_disk/chaohung103/strideMergeTrimMatepair/FMIndexWalk/
+cp /bip6_disk/chaohung103/strideMergeTrimMatepair/FMIndexWalk/SAIntervalTree.* /bip7_disk/chaohung103/strideMergeTrimMatepair/FMIndexWalk/
+cp /bip6_disk/chaohung103/strideMergeTrimMatepair/StriDe/FMIndexWalk.* /bip6_disk/chaohung103/strideMergeTrimMatepair/StriDe/FMIndexWalk.*
+make
