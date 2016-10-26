@@ -36,10 +36,11 @@ Argument :
 Output:
 
 The program produce 4 files.
--inputfile.merge.fa : Long read sequences are reserved in this file.
 
--inputfile.shortIS.fa: Long read sequences, which lengths are shorter than the minimum insert size (-c option), are reserved in the file.
+1. inputfile.merge.fa : Long read sequences are reserved in this file.
 
--inputfile.trimmed.fa: Mate pair reads, which can't be converted into long sequences, are reserved in the file.
+2. inputfile.shortIS.fa: Long read sequences, which lengths are shorter than the minimum insert size (-c option), are reserved in the file.
 
--inputfile.polluted.fa:  one of the end of mate pair reads can not be found sufficient k-mer in FM-index.
+3. inputfile.trimmed.fa: Mate pair reads, which can't be converted into long sequences, are reserved in the file.
+
+4. inputfile.polluted.fa:  one of the end of mate pair reads can not be found sufficient k-mer in FM-index.
