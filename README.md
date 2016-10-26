@@ -9,13 +9,6 @@ Usage:
 ----------------------------------------------------------------------------------------------
 inputfile.fa : Input file(fasta), matepair should be outward and interleaved in the file.
 
-eg.
-
-In inputfile.fa, the sequences are ordered as follows.
-\>100/1
-ACCGTCCTGTACTACT
-\>100/2
-GCGATCGAACGGGACT
 ----------------------------------------------------------------------------------------------
 
 Argument : 
@@ -47,14 +40,5 @@ The program produce 4 files.
 -inputfile.shortIS.fa: Long read sequences, which lengths are shorter than the minimum insert size (-c option), are reserved in the file.
 
 -inputfile.trimmed.fa: Mate pair reads, which can't be converted into long sequences, are reserved in the file.
-eg. In .trimmed.fa, the sequences are ordered as follows.
-\>100/1 -original read
-ATCGGGACGGGTTTTGGGGAGAGAGAGA
-\>100/1 -trimmed read
-ATCGGGACGGGTT
-\>100/2 -original read
-GGCGAAAATTTCGACGACGAAACGGTTT
-\>100/2 -trimmed read
-GGCGAAAATTTCGACGAC
 
 -inputfile.polluted.fa:  one of the end of mate pair reads can not be found sufficient k-mer in FM-index.
