@@ -8,9 +8,9 @@ Usage:
 
 inputfile.fa : Input file(fasta), matepair should be outward and interleaved in the file.
 	eg.	In inputfile.fa, the sequences are ordered as follows.
-		>100/1
+		\>100/1
 		ACCGTCCTGTACTACT
-		>100/2
+		\>100/2
 		GCGATCGAACGGGACT
 -m : the refinement size for the k-mer when resizing 
 
