@@ -4,7 +4,7 @@ StriDe: https://github.com/ythuang0522/StriDe
 
 Usage:
 
-./stride matepair -m 30 -M 90 -t 30 -L 64 -I 3500 -x 3 -k 31 -p ecor inputfile.fa
+./stride matepair -m 30 -M 90 -t 30 -L 64 -I 3500 -c 437 -x 3 -k 31 -p ecor inputfile.fa
 
 ----------------------------------------------------------------------------------------------
 inputfile.fa : Input file(fasta), matepair should be outward and interleaved in the file.
