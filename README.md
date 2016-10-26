@@ -30,6 +30,7 @@ Argument :
 -p : the prefix of FM-index file.
 
 -k : the kmer size for trimming kmer.
+
 ----------------------------------------------------------------------------------------------
 
 Output:
