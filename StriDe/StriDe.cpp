@@ -21,6 +21,7 @@
 #include "grep.h"
 #include "FMIndexWalk.h"
 #include "strideall.h"
+#include "MPExtension.h"
 
 #define PROGRAM_BIN "stride"
 #define AUTHOR "Yao-Ting Huang"
@@ -46,6 +47,7 @@ static const char *STRIDE_USAGE_MESSAGE =
 "      filter      remove redundant reads from a data set\n"
 "      overlap     compute overlaps between reads\n"
 "      assemble    generate contigs from an assembly graph\n"
+"      matepair    convert matepair reads into long sequences\n"
 "\nOther Commands:\n"
 "      merge	merge multiple BWT/FM-index files into a single index\n"
 "\nReport bugs to " PACKAGE_BUGREPORT "\n\n";
@@ -97,7 +99,8 @@ int main(int argc, char** argv)
             grepMain(argc - 1, argv + 1);
         else if(command == "fmwalk")
             FMindexWalkMain(argc - 1, argv + 1);
-
+	else if(command == "matepair")
+            MatepairExtensionMain(argc - 1, argv + 1);	
         else
         {
             std::cerr << "Unrecognized command: " << command << "\n";

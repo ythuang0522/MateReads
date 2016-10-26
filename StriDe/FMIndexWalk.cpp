@@ -67,8 +67,6 @@ namespace opt
     static std::string prefix;
     static std::string readsFile;
     static std::string outFile;
-	static std::string outFile2;//trimmatepair by chaohung 20151030
-	static std::string outFile3;//trimmatepair by chaohung 20151103
     static std::string discardFile;
     static int sampleRate = BWT::DEFAULT_SAMPLE_RATE_SMALL;
 
@@ -125,17 +123,17 @@ int FMindexWalkMain(int argc, char** argv)
 	{
 		#pragma omp single nowait
 		{	//Initialization of large BWT takes some time, pass the disk to next job
-			std::cout << std::endl << "Loading BWT: " << opt::prefix + BWT_EXT << std::endl;
+			std::cout << std::endl << "Loading BWT: " << opt::prefix + BWT_EXT << "\n";
 			pBWT = new BWT(opt::prefix + BWT_EXT, opt::sampleRate);
 		}
 		#pragma omp single nowait
 		{
-			std::cout << "Loading RBWT: " << opt::prefix + RBWT_EXT << std::endl;
+			std::cout << "Loading RBWT: " << opt::prefix + RBWT_EXT << "\n";
 			pRBWT = new BWT(opt::prefix + RBWT_EXT, opt::sampleRate);
 		}
 		#pragma omp single nowait
 		{
-			std::cout << "Loading Sampled Suffix Array: " << opt::prefix + SAI_EXT << std::endl;
+			std::cout << "Loading Sampled Suffix Array: " << opt::prefix + SAI_EXT << "\n";
 			pSSA = new SampledSuffixArray(opt::prefix + SAI_EXT, SSA_FT_SAI);
 		}
 	}
@@ -146,7 +144,7 @@ int FMindexWalkMain(int argc, char** argv)
     indexSet.pSSA = pSSA;
     ecParams.indices = indexSet;
 
-    // Sample 100000 kmer counts into KmerDistribution from reverse BWT 
+	// Sample 100000 kmer counts into KmerDistribution from reverse BWT 
 	// Don't sample from forward BWT as Illumina reads are bad at the 3' end
 	ecParams.kd = BWTAlgorithms::sampleKmerCounts(opt::minOverlap, 100000, pRBWT);
 	ecParams.kd.computeKDAttributes();
@@ -154,12 +152,10 @@ int FMindexWalkMain(int argc, char** argv)
 	std::cout << "Median kmer frequency: " <<ecParams.kd.getMedian() << "\t Std: " <<  ecParams.kd.getSdv() 
 					<<"\t 95% kmer frequency: " << ecParams.kd.getCutoffForProportion(0.95)
 					<< "\t Repeat frequency cutoff: " << ecParams.kd.getRepeatKmerCutoff() << "\n";
-    ecParams.FreqThreshold=ecParams.kd.findFirstLocalMinimum();
+	
     // Open outfiles and start a timer
     std::ostream* pWriter = createWriter(opt::outFile);
     std::ostream* pDiscardWriter = (!opt::discardFile.empty() ? createWriter(opt::discardFile) : NULL);
-	std::ostream* pWriter2=NULL;//trimmatepair by chaohung 20151030
-	std::ostream* pWriter3=NULL;//trimmatepair by chaohung 20151030
     Timer* pTimer = new Timer(PROGRAM_IDENT);
 
     ecParams.algorithm = opt::algorithm;
@@ -171,14 +167,7 @@ int FMindexWalkMain(int argc, char** argv)
     ecParams.maxOverlap = opt::maxOverlap;
 	
     // Setup post-processor
-	//trimmatepair by chaohung 20151030
-	if(ecParams.algorithm == FMW_trimMatePair)
-	{
-		pWriter3 = createWriter(opt::outFile3);
-		pWriter2 = createWriter(opt::outFile2);
-	}
-	FMIndexWalkPostProcess postProcessor(pWriter, pDiscardWriter, pWriter2, pWriter3, ecParams);
-	//FMIndexWalkPostProcess postProcessor(pWriter, pDiscardWriter, ecParams);
+    FMIndexWalkPostProcess postProcessor(pWriter, pDiscardWriter, ecParams);
 
     std::cout << "Merge paired end reads into long reads for " << opt::readsFile << " using \n" 
 				<< "min overlap=" <<  ecParams.minOverlap << "\t"
@@ -191,8 +180,8 @@ int FMindexWalkMain(int argc, char** argv)
     {
         // Serial mode
         FMIndexWalkProcess processor(ecParams);
-		//if (ecParams.algorithm == FMW_HYBRID || ecParams.algorithm == FMW_MERGE)
-		if (ecParams.algorithm == FMW_HYBRID || ecParams.algorithm == FMW_MERGE || ecParams.algorithm == FMW_trimMatePair)//By Chaohung_2015_01_22
+
+		if (ecParams.algorithm == FMW_HYBRID || ecParams.algorithm == FMW_MERGE)
         SequenceProcessFramework::processSequencesSerial<SequenceWorkItemPair,
                                                          FMIndexWalkResult,
                                                          FMIndexWalkProcess,
@@ -213,8 +202,8 @@ int FMindexWalkMain(int argc, char** argv)
             FMIndexWalkProcess* pProcessor = new FMIndexWalkProcess(ecParams);
             processorVector.push_back(pProcessor);
         }
-		//if (ecParams.algorithm == FMW_HYBRID || ecParams.algorithm == FMW_MERGE)
-		if (ecParams.algorithm == FMW_HYBRID || ecParams.algorithm == FMW_MERGE || ecParams.algorithm == FMW_trimMatePair)//By Chaohung_2015_01_22
+
+		if (ecParams.algorithm == FMW_HYBRID || ecParams.algorithm == FMW_MERGE)
         SequenceProcessFramework::processSequencesParallel<SequenceWorkItemPair,
                                                            FMIndexWalkResult,
                                                            FMIndexWalkProcess,
@@ -242,11 +231,6 @@ int FMindexWalkMain(int argc, char** argv)
     delete pTimer;
 
     delete pWriter;
-	//By Chaohung_2015_11_03
-	if(pWriter2 != NULL)//without delete,will cause wc error
-        delete pWriter2;
-	if(pWriter3 !=NULL)
-		delete pWriter3;
     if(pDiscardWriter != NULL)
         delete pDiscardWriter;
 	
@@ -261,9 +245,6 @@ void parseFMWalkOptions(int argc, char** argv)
 {
 	optind=1;	//reset getopt
     std::string algo_str;
-    bool bDiscardReads = false;
-	if (!bDiscardReads)
-		bDiscardReads =false;
     bool die = false;
     for (char c; (c = getopt_long(argc, argv, shortopts, longopts, NULL)) != -1;)
     {
@@ -283,7 +264,6 @@ void parseFMWalkOptions(int argc, char** argv)
             case 'm': arg >> opt::minOverlap; break;
             case 'M': arg >> opt::maxOverlap; break;
             case OPT_LEARN: opt::bLearnKmerParams = true; break;
-            case OPT_DISCARD: bDiscardReads = true; break;
             case OPT_HELP:
                 std::cout << CORRECT_USAGE_MESSAGE;
                 exit(EXIT_SUCCESS);
@@ -330,9 +310,7 @@ void parseFMWalkOptions(int argc, char** argv)
             opt::algorithm = FMW_MERGE;
 		else if(algo_str == "hybrid")
             opt::algorithm = FMW_HYBRID;
-		else if(algo_str == "trimMatePair")//By Chaohung_2015_01_22
-			opt::algorithm = FMW_trimMatePair;
-		else
+        else
         {
             std::cerr << SUBPROGRAM << ": unrecognized -a,--algorithm parameter: " << algo_str << "\n";
             die = true;
@@ -364,13 +342,9 @@ void parseFMWalkOptions(int argc, char** argv)
     std::string out_prefix = stripFilename(opt::readsFile);
     if(opt::outFile.empty())
     {
-		if (opt::algorithm == FMW_HYBRID || opt::algorithm ==  FMW_MERGE)
+		if (opt::algorithm == FMW_HYBRID || opt::algorithm ==  FMW_MERGE )
 			opt::outFile = out_prefix + ".merge.fa";
-		else if (opt::algorithm == FMW_trimMatePair)//By Chaohung_2015_01_22
-		{
-			opt::outFile = out_prefix + ".trimmed.fa";
-		}
-		else
+        else
 			opt::outFile = out_prefix + ".origin.fa";
     }
 
@@ -381,17 +355,5 @@ void parseFMWalkOptions(int argc, char** argv)
 		opt::discardFile = out_prefix + ".kmerized.fa";
 
 	}
-	if (opt::algorithm == FMW_trimMatePair)//By Chaohung_2015_01_22
-	{
-		if(!opt::outFile2.empty())
-			opt::outFile2.clear();
-		if(!opt::outFile3.empty())
-			opt::outFile3.clear();
-		opt::outFile2 = out_prefix + ".merge.fa";
-		opt::outFile3 = out_prefix + ".shortIS.fa";
-		if(!opt::discardFile.empty())
-			opt::discardFile.clear();
-		opt::discardFile = out_prefix + ".polluted.fa";
-		
-	}
+    
 }

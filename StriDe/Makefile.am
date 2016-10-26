@@ -39,4 +39,7 @@ stride_SOURCES = StriDe.cpp \
 		kmerfreq.h kmerfreq.cpp \
 		grep.h grep.cpp \
 		FMIndexWalk.h FMIndexWalk.cpp \
+		MPExtension.h MPExtension.cpp \
+		MPExtensionProcess.h MPExtensionProcess.cpp \
+		MPSAIntervalTree.h MPSAIntervalTree.cpp \
               SGACommon.h 

@@ -98,7 +98,9 @@ am_stride_OBJECTS = stride-StriDe.$(OBJEXT) stride-strideall.$(OBJEXT) \
 	stride-subgraph.$(OBJEXT) stride-filter.$(OBJEXT) \
 	stride-fm-merge.$(OBJEXT) stride-OverlapCommon.$(OBJEXT) \
 	stride-kmerfreq.$(OBJEXT) stride-grep.$(OBJEXT) \
-	stride-FMIndexWalk.$(OBJEXT)
+	stride-FMIndexWalk.$(OBJEXT) stride-MPExtension.$(OBJEXT) \
+	stride-MPExtensionProcess.$(OBJEXT) \
+	stride-MPSAIntervalTree.$(OBJEXT)
 stride_OBJECTS = $(am_stride_OBJECTS)
 stride_DEPENDENCIES = $(top_builddir)/StringGraph/libstringgraph.a \
 	$(top_builddir)/Concurrency/libconcurrency.a \
@@ -313,6 +315,9 @@ stride_SOURCES = StriDe.cpp \
 		kmerfreq.h kmerfreq.cpp \
 		grep.h grep.cpp \
 		FMIndexWalk.h FMIndexWalk.cpp \
+		MPExtension.h MPExtension.cpp \
+		MPExtensionProcess.h MPExtensionProcess.cpp \
+		MPSAIntervalTree.h MPSAIntervalTree.cpp \
               SGACommon.h 
 
 all: all-am
@@ -403,6 +408,9 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stride-FMIndexWalk.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stride-MPExtension.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stride-MPExtensionProcess.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stride-MPSAIntervalTree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stride-OverlapCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stride-StriDe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stride-assemble.Po@am__quote@
@@ -641,6 +649,48 @@ stride-FMIndexWalk.obj: FMIndexWalk.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='FMIndexWalk.cpp' object='stride-FMIndexWalk.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o stride-FMIndexWalk.obj `if test -f 'FMIndexWalk.cpp'; then $(CYGPATH_W) 'FMIndexWalk.cpp'; else $(CYGPATH_W) '$(srcdir)/FMIndexWalk.cpp'; fi`
+
+stride-MPExtension.o: MPExtension.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT stride-MPExtension.o -MD -MP -MF $(DEPDIR)/stride-MPExtension.Tpo -c -o stride-MPExtension.o `test -f 'MPExtension.cpp' || echo '$(srcdir)/'`MPExtension.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stride-MPExtension.Tpo $(DEPDIR)/stride-MPExtension.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MPExtension.cpp' object='stride-MPExtension.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o stride-MPExtension.o `test -f 'MPExtension.cpp' || echo '$(srcdir)/'`MPExtension.cpp
+
+stride-MPExtension.obj: MPExtension.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT stride-MPExtension.obj -MD -MP -MF $(DEPDIR)/stride-MPExtension.Tpo -c -o stride-MPExtension.obj `if test -f 'MPExtension.cpp'; then $(CYGPATH_W) 'MPExtension.cpp'; else $(CYGPATH_W) '$(srcdir)/MPExtension.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stride-MPExtension.Tpo $(DEPDIR)/stride-MPExtension.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MPExtension.cpp' object='stride-MPExtension.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o stride-MPExtension.obj `if test -f 'MPExtension.cpp'; then $(CYGPATH_W) 'MPExtension.cpp'; else $(CYGPATH_W) '$(srcdir)/MPExtension.cpp'; fi`
+
+stride-MPExtensionProcess.o: MPExtensionProcess.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT stride-MPExtensionProcess.o -MD -MP -MF $(DEPDIR)/stride-MPExtensionProcess.Tpo -c -o stride-MPExtensionProcess.o `test -f 'MPExtensionProcess.cpp' || echo '$(srcdir)/'`MPExtensionProcess.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stride-MPExtensionProcess.Tpo $(DEPDIR)/stride-MPExtensionProcess.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MPExtensionProcess.cpp' object='stride-MPExtensionProcess.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o stride-MPExtensionProcess.o `test -f 'MPExtensionProcess.cpp' || echo '$(srcdir)/'`MPExtensionProcess.cpp
+
+stride-MPExtensionProcess.obj: MPExtensionProcess.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT stride-MPExtensionProcess.obj -MD -MP -MF $(DEPDIR)/stride-MPExtensionProcess.Tpo -c -o stride-MPExtensionProcess.obj `if test -f 'MPExtensionProcess.cpp'; then $(CYGPATH_W) 'MPExtensionProcess.cpp'; else $(CYGPATH_W) '$(srcdir)/MPExtensionProcess.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stride-MPExtensionProcess.Tpo $(DEPDIR)/stride-MPExtensionProcess.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MPExtensionProcess.cpp' object='stride-MPExtensionProcess.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o stride-MPExtensionProcess.obj `if test -f 'MPExtensionProcess.cpp'; then $(CYGPATH_W) 'MPExtensionProcess.cpp'; else $(CYGPATH_W) '$(srcdir)/MPExtensionProcess.cpp'; fi`
+
+stride-MPSAIntervalTree.o: MPSAIntervalTree.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT stride-MPSAIntervalTree.o -MD -MP -MF $(DEPDIR)/stride-MPSAIntervalTree.Tpo -c -o stride-MPSAIntervalTree.o `test -f 'MPSAIntervalTree.cpp' || echo '$(srcdir)/'`MPSAIntervalTree.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stride-MPSAIntervalTree.Tpo $(DEPDIR)/stride-MPSAIntervalTree.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MPSAIntervalTree.cpp' object='stride-MPSAIntervalTree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o stride-MPSAIntervalTree.o `test -f 'MPSAIntervalTree.cpp' || echo '$(srcdir)/'`MPSAIntervalTree.cpp
+
+stride-MPSAIntervalTree.obj: MPSAIntervalTree.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT stride-MPSAIntervalTree.obj -MD -MP -MF $(DEPDIR)/stride-MPSAIntervalTree.Tpo -c -o stride-MPSAIntervalTree.obj `if test -f 'MPSAIntervalTree.cpp'; then $(CYGPATH_W) 'MPSAIntervalTree.cpp'; else $(CYGPATH_W) '$(srcdir)/MPSAIntervalTree.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stride-MPSAIntervalTree.Tpo $(DEPDIR)/stride-MPSAIntervalTree.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MPSAIntervalTree.cpp' object='stride-MPSAIntervalTree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(stride_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o stride-MPSAIntervalTree.obj `if test -f 'MPSAIntervalTree.cpp'; then $(CYGPATH_W) 'MPSAIntervalTree.cpp'; else $(CYGPATH_W) '$(srcdir)/MPSAIntervalTree.cpp'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique

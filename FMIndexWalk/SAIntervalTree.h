@@ -103,32 +103,18 @@ class SAIntervalTree
                        size_t MaxLeaves,
 					   BWTIndexSet indices,
                        std::string secondread,
-                       //const size_t repeat_threshold,
-                       size_t SA_threshold=3,//chaohung103 20151216
+                       size_t SA_threshold=3,
                        bool KmerMode=false);
-        SAIntervalTree(const std::string* pQuery,
-                       size_t minOverlap,
-                       size_t maxOverlap,
-                       size_t MaxLength,
-                       size_t MaxLeaves,
-					   BWTIndexSet indices,
-                       const size_t repeatThreshold,
-                       std::string secondread,
-                       //const size_t repeat_threshold,
-                       size_t SA_threshold=3,//chaohung103 20151216
-                       bool KmerMode=false);
+
         ~SAIntervalTree();
 
         //return the merged string
         //bool mergeTwoReads(StringVector & mergeReads);
         int mergeTwoReads(std::string &mergedseq);
-        int mergeRepeat(std::string &mergedseq); //repeat case - merging round 2 
 		size_t getKmerCoverage(){return m_maxKmerCoverage;};
 		size_t getMaxUsedLeaves(){return m_maxUsedLeaves;};
-        size_t getCurrentExtendAllFreq(){return m_currentExtendAllFreq;};
-        void addCurrentExtendAllFreq(size_t kmerfreq){ m_currentExtendAllFreq+=kmerfreq; };
-        void initCurrentExtendAllFreq(void){ m_currentExtendAllFreq= 0; };
 		bool isBubbleCollapsed(){return m_isBubbleCollapsed;}
+
         // Print all the strings represented by the tree
         void printAll();
 
@@ -139,7 +125,6 @@ class SAIntervalTree
         //
         void extendLeaves();
         void attempToExtend(STNodePtrList &newLeaves);
-        void filterLowCoverageInterval(STNodePtrList &newLeaves);
         void refineSAInterval(size_t newKmerSize);
         std::vector<std::pair<std::string, BWTIntervalPair> > getFMIndexExtensions(SAIntervalNode* pNode);
 
@@ -148,7 +133,7 @@ class SAIntervalTree
         bool isTwoReadsOverlap(std::string & mergedseq);
         size_t calculateKmerCoverage (const std::string & seq , size_t kmerLength , const BWT* pBWT);
 		bool replaceLowFreqKmer (std::string & seq , size_t kmerLength);
-        void testingOneEND(SAIntervalNodeResultVector& results);
+
         void removeLeavesByRepeatKmer();
 
         //
@@ -159,26 +144,20 @@ class SAIntervalTree
 		size_t m_maxOverlap;
         size_t m_MaxLength;
         size_t m_MaxLeaves;
-        
 		BWTIndexSet m_indices;
-        const size_t m_repeatThreshold;
         std::string m_secondread;
         size_t m_min_SA_threshold;
         bool m_kmerMode;
 
         SAIntervalNode* m_pRootNode;
         STNodePtrList m_leaves;
-        
         DenseHashMap<std::string, size_t, StringHasher> m_KmerIndexMap;
         size_t m_currentLength;
 		size_t m_currentKmerSize;
 		size_t m_maxKmerCoverage;
 		size_t m_maxUsedLeaves;
-        bool m_isBubbleCollapsed;
-        size_t m_currentExtendAllFreq;
-        
+		bool m_isBubbleCollapsed;
 
-        
         BWTInterval m_fwdTerminatedInterval;   //in rBWT
         BWTInterval m_rvcTerminatedInterval;   //in BWT
 };

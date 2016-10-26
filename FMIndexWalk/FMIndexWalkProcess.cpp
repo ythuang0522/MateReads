@@ -11,7 +11,7 @@
 #include "HashMap.h"
 #include <iomanip>
 #include "SAIntervalTree.h"
-using namespace std;
+
 
 //#define KMER_TESTING 1
 
@@ -166,7 +166,6 @@ FMIndexWalkResult FMIndexWalkProcess::MergePairedReads(const SequenceWorkItemPai
 		//Walk from the 1st end to 2nd end
 		size_t maxOverlap = m_params.maxOverlap!=-1?m_params.maxOverlap:
 											((workItemPair.first.read.seq.length()+workItemPair.second.read.seq.length())/2)*0.9;
-                                            
 											
         SAIntervalTree SAITree(&firstKRstr, m_params.minOverlap, maxOverlap, m_params.maxInsertSize, m_params.maxLeaves,
                                             m_params.indices, reverseComplement(secondKRstr), threshold);
@@ -232,147 +231,6 @@ FMIndexWalkResult FMIndexWalkProcess::MergePairedReads(const SequenceWorkItemPai
 	return result;
 }
 
-//trimmatepair by chaohung 20151017
-FMIndexWalkResult FMIndexWalkProcess::MatepairWorkflow(const SequenceWorkItemPair& workItemPair)
-{
-	FMIndexWalkResult result;
-	std::string mergedseq1,mergedseq2;
-	int longRead=0,shortIS=0;
-    const size_t RepeatKmerFreq = m_params.kd.getMedian()*1.3;
-    //const size_t FreqThreshold = m_params.kd.findFirstLocalMinimum();
-	//get parameters123
-	size_t kmerLength = m_params.kmerLength ;
-	size_t threshold = (size_t)CorrectionThresholds::Instance().getRequiredSupport(0)-1;
-    
-	std::string seqFirst  = workItemPair.first.read.seq.toString() ;
-	std::string seqSecond = workItemPair.second.read.seq.toString();
-
-	//Trim head and tail of both ends containing errors
-	//seqFirst = trimRead(seqFirst, kmerLength,threshold,m_params.indices,&result.head1, &result.c1, result.cs1);
-	//seqSecond = trimRead(seqSecond, kmerLength,threshold,m_params.indices,&result.head2, &result.p1, result.ps1);
-    seqFirst = trimRead(seqFirst, kmerLength,threshold,m_params.indices,&result.head1, m_params.FreqThreshold);
-	seqSecond = trimRead(seqSecond, kmerLength,threshold,m_params.indices,&result.head2, m_params.FreqThreshold);
-    
-    /*     if(seqFirst.empty() || seqSecond.empty())//both 1st and 2nd not empty
-    {
-            result.trim = true ;
-			result.correctSequence = seqFirst ;
-			result.correctSequence2 = seqSecond;
-			return result;
-    }
-     */
-	if(!seqFirst.empty() && !seqSecond.empty())//both 1st and 2nd not empty
-	{
-		result.tryMerge=true;
-		 std::string firstKRstr = reverseComplement(seqFirst.substr(0));
-		 std::string secondKRstr  = seqSecond.substr(0);
-
-
-		// maxOverlap is limited to 90% of read length which aims to prevent over-greedy search
-        size_t maxOverlap = m_params.maxOverlap!=-1?m_params.maxOverlap:
-											((workItemPair.first.read.seq.length()+workItemPair.second.read.seq.length())/2)*0.95;
-
-	
-		// Walk from the 1st end to 2nd end
-		SAIntervalTree SAITree1(&firstKRstr, m_params.minOverlap, maxOverlap, m_params.maxInsertSize, m_params.maxLeaves,
-											m_params.indices, RepeatKmerFreq, secondKRstr);
-			
-		longRead=SAITree1.mergeTwoReads(mergedseq1);
-            
-             
-  		 if(longRead==-3)//round 2 - merging repeat case
-         {  //第一次走的路線要rvc 才能當作第二次的終點
-            // original = ..........xxxxxxx
-            // trim = ..........
-            // trim = rvc(..........)
-            firstKRstr = reverseComplement(mergedseq1.substr(0,mergedseq1.length()-2));
-            //firstKRstr = reverseComplement(mergedseq1.substr(0,mergedseq1.length()-m_params.minOverlap));
-            secondKRstr = reverseComplement(secondKRstr);
-            SAIntervalTree SAITree2(&secondKRstr, m_params.minOverlap, maxOverlap, m_params.maxInsertSize-mergedseq1.length()+30, m_params.maxLeaves,
-                                                m_params.indices, RepeatKmerFreq, firstKRstr);
-                  
-            longRead=SAITree2.mergeRepeat(mergedseq1);
-            // std::cout<<"second round"<<std::endl;
-        } 
-			// Fail to merge long read, try short fragment size read
-        // if(longRead==-2 ){
-            // firstKRstr=seqFirst.substr(0);
-            // SAIntervalTree SAITree2(&firstKRstr, m_params.minOverlap, maxOverlap, 0.125 *  m_params.maxInsertSize, m_params.maxLeaves,
-                                                // m_params.indices, reverseComplement(secondKRstr));
-			// shortIS=SAITree2.mergeTwoReads(mergedseq2);
-			// }
-		// std::cout<<workItemPair.first.read.id.substr (0, workItemPair.first.read.id.find('/') )<<" : "<<"longRead="<<longRead<<", shortIS="<<shortIS<<std::endl;
-        // if(longRead>0 && !mergedseq1.empty())
-		// {
-				// result.mergeMP =true;
-				// result.correctSequence = mergedseq1;
-				// result.longmergeCount=true;
-				// return result;
-		// }
-        
-		if(longRead>-2 && !mergedseq1.empty())
-		{
-			if(mergedseq1.length()>0.125 *  m_params.maxInsertSize){
-				result.mergeMP =true;
-				result.correctSequence = mergedseq1;
-				result.longmergeCount=true;
-				return result;
-			}
-			else
-			{
-				result.polluted = true;
-                result.whyLongFail=longRead=-4;
-				result.pollutedSequence = workItemPair.first.read.seq.toString() ;
-				result.pollutedSequence2 = workItemPair.second.read.seq.toString();
-				return result;
-			}
-			
-		}
-		else if(shortIS>0 &&!mergedseq2.empty())
-		{
-			if(mergedseq2.length()>0.125 *  m_params.maxInsertSize)
-			{
-				result.mergeMP = true;
-                result.whyLongFail=longRead;
-				result.correctSequence = mergedseq2;
-				result.shortmergeCount= true;
-				return result;
-            }
-            else
-			{
-				result.polluted = true;
-				result.pollutedSequence = workItemPair.first.read.seq.toString() ;
-				result.pollutedSequence2 = workItemPair.second.read.seq.toString();
-				return result;
-			}
-		}
-		else
-		{
-			result.trim = true ;
-			result.whyLongFail=longRead;
-			result.whyShortFail=shortIS;
-			result.correctSequence = seqFirst ;
-			result.correctSequence2 = seqSecond;
-			return result;
-		}
-	}
-	else
-	{
-		result.polluted = true;
-		result.pollutedSequence = workItemPair.first.read.seq.toString() ;
-		result.pollutedSequence2 = workItemPair.second.read.seq.toString();
-		return result;
-		
-            /*seqFist是空 or seqSecond是空 or 兩個都空的
-			if(!seqFirst.empty())
-				result.trim = false ;
-				result.correctSequence = mergedseq2 ;
-				return result; */
-		
-	}
-    
-	return result;
-}
 //
 FMIndexWalkResult FMIndexWalkProcess::process(const SequenceWorkItem& workItem)
 {
@@ -688,107 +546,6 @@ std::string FMIndexWalkProcess::trimRead( std::string readSeq, size_t kmerLength
 
 }
 
-//trimmatepair by chaohung 20151017
-//std::string FMIndexWalkProcess::trimRead( std::string readSeq ,size_t kmerLength , size_t /*threshold*/ ,BWTIndexSet & index,bool *H, int *cs1, int *a1, const int freqThrshold)
-std::string FMIndexWalkProcess::trimRead( std::string readSeq ,size_t kmerLength , size_t /*threshold*/ ,BWTIndexSet & index,bool *H, const size_t freqThrshold)
-{
-
-	//set kmer context
-	//KmerContext  kc (readSeq,kmerLength,index);
-
-	//check all kmers freq.
-	// bool undamaged = true;
-
-	// for (size_t i = 0 ; i < kc.numKmer  ; i++)
-	// if ( kc.kmerFreqs_same[i] < threshold || kc.kmerFreqs_revc [i] < threshold ) undamaged=false;
-
-	// //all kmers clear
-	// if (undamaged) return kc;
-	
-	//trim
-	int kmerPos=0,head=0, tail=0, lastKmer=readSeq.length()-kmerLength;//,i=0,count=0;
-	
-	
-	//
-	// 679 - 693 print kmer frequency
-	//
-/* 	for(i=0;i<100;++i){
-		a1[i]=0;
-	}
-	*cs1=0;
-	for (kmerPos = kmerPos ; kmerPos <= lastKmer; kmerPos++ ){
-		count = BWTAlgorithms::countSequenceOccurrences( readSeq.substr(kmerPos,kmerLength), index);
-		if(count >6)
-			a1[kmerPos]=6;
-		else
-			a1[kmerPos]= count;
-		*cs1=*cs1+1;
-	} */
-	//
-	//
-	//
-	
-
-	kmerPos=0;
-	for(kmerPos = kmerPos ;kmerPos<=lastKmer;kmerPos++){
-		if (BWTAlgorithms::countSequenceOccurrences( readSeq.substr(kmerPos,kmerLength), index)<=freqThrshold)
-		{
-			continue;
-		}
-		else
-		{
-				head=kmerPos;
-                *H=true;
-				break;
-		}
-	}
-	if(kmerPos<=lastKmer){
-		for (kmerPos = kmerPos ; kmerPos <= lastKmer ; kmerPos++ )
-		{
-			if (BWTAlgorithms::countSequenceOccurrences( readSeq.substr(kmerPos,kmerLength), index)>freqThrshold)
-			{
-				if(kmerPos==lastKmer){
-					tail=kmerPos;
-				}	
-				else
-					continue;
-			}
-			else
-			{								
-				tail=kmerPos-1;
-				break ;
-				
-			}
-		}
-	}
-   
-    
-    
-	/*if(tail !=0){//{if(head>tail){
-		*H=true;
-	}*/
-	//if (( kc.kmerFreqs_same[tail] < threshold || kc.kmerFreqs_revc [tail] < threshold )  && ( numNextKmer(kc.kmers[tail],NK_END,index) == 0 ) )
-	//if ( numNextKmer( readSeq.substr(tail, kmerLength), NK_END, index) == 0  )
-	/*tail=readSeq.length()-kmerLength;
-	for (tail = tail; tail >= head  ; tail-- ){
-		if (BWTAlgorithms::countSequenceOccurrences( readSeq.substr(tail, kmerLength), index)>5)
-		{
-			*T=true;
-			*runK=kmerLength;
-			break ;
-		}
-	}
-	if(head> tail){
-		*T=false;
-	}
-	*/
-	//all kemrs are dirty , return empty
-	if (!*H)
-		return "";
-	else
-		return readSeq.substr(head,tail-head+kmerLength);//(head,tail+kmerLength);
-
-}
 
 
 size_t FMIndexWalkProcess::numNextKmer(std::string kmer , NextKmerDir dir ,BWTIndexSet & index, size_t threshold)
@@ -841,79 +598,17 @@ FMIndexWalkPostProcess::FMIndexWalkPostProcess(std::ostream* pCorrectedWriter,
 																													m_params(params),
 																													m_kmerizePassed(0),
 																													m_mergePassed(0),
-                                                                                                                    m_qcFail(0)                                                                                                                    
+																													m_qcFail(0)
 																				{
 																					//m_ptmpWriter = createWriter("NoPESupport.fa");
 																				}
 
-//trimmatepair by chaohung 20151030
-FMIndexWalkPostProcess::FMIndexWalkPostProcess(std::ostream* pCorrectedWriter,
-																				std::ostream* pDiscardWriter,
-																				std::ostream* pLongReadWriter,
-																				std::ostream* pShortReadWriter,
-																				const FMIndexWalkParameters params) :
-																													m_pCorrectedWriter(pCorrectedWriter),
-																													m_pDiscardWriter(pDiscardWriter),
-																													m_pLongReadWriter(pLongReadWriter),
-																													m_pShortReadWriter(pShortReadWriter),
-																													m_params(params),
-																													m_kmerizePassed(0),
-																													m_mergePassed(0),
-                                                                                                                    //trimmatepair by chaohung 20151017
-                                                                                                                    m_qcFail(0),
-                                                                                                                    m_trimPassed(0),
-                                                                                                                    m_r1_pass(0),
-                                                                                                                    m_r2_pass(0),
-																													m_totalMerge(0),
-																													m_longSucc(0),
-																													m_shortSucc(0),
-																													m_HighError(0),
-																													m_exceedSearchDepth(0),
-																													m_Repeat(0),
-																													m_Case4(0),
-																													m_HighError2(0),
-																													m_exceedSearchDepth2(0),
-																													m_Repeat2(0),
-																													m_Case42(0)
-																				{
-																					//m_ptmpWriter = createWriter("NoPESupport.fa");
-																				}
 //
 FMIndexWalkPostProcess::~FMIndexWalkPostProcess()
 {
-    //trimmatepair by chaohung 20151017
-	if(m_params.algorithm == FMW_trimMatePair){
-		/*std::cout << "Reads trimmed from head success: " << s_numHeadsuccess << "\n";//By_Chaohung_2015_01_27
-		std::cout << "Reads trimmed from tail success: " << s_numTailsuccess << "\n";//By_Chaohung_2015_01_27
-		std::cout << "Reads trimmed from head fail: " << s_numHeadfail << "\n";//By_Chaohung_2015_01_27
-		std::cout << "Reads trimmed from tail fail: " << s_numTailfail << "\n";//By_Chaohung_2015_01_27
-        */
-        
-
-        std::cout << "    Reads are trimmed: " << m_trimPassed << "\n";
-        std::cout << "        -R1 are trimmed: " << m_r1_pass << "\n";
-        std::cout << "        -R2 are trimmed: " << m_r2_pass << "\n";
-		std::cout << "    Reads total merge: " << m_totalMerge << "\n";
-		std::cout << "        -Long Merge      : " << m_longSucc << "\n";
-		std::cout << "        -Short Merge     : " << m_shortSucc << "\n";
-		std::cout << "        -Both Merge Fail : " << m_totalMerge-m_longSucc-m_shortSucc << "\n";
-		std::cout << "            -Long merge fail : " <<"\n";
-		std::cout << "                    -HighError          : " << m_HighError << "\n";
-		std::cout << "                    -Exceed Search Depth: " << m_exceedSearchDepth << "\n";
-		std::cout << "                    -Repeat             : " << m_Repeat << "\n";
-		std::cout << "                    -Too short(<0.125*MAX_insertSize)    : " << m_Case4 << "\n";
-		std::cout << "            -Short merge fail: " <<"\n";
-		std::cout << "                    -HighError          : " << m_HighError2 << "\n";
-		std::cout << "                    -Exceed Search Depth: " << m_exceedSearchDepth2 << "\n";
-		std::cout << "                    -Repeat             : " << m_Repeat2 << "\n";
-		std::cout << "    Reads failed to trim: " << m_qcFail << "\n";
-
-	}
-	else{
-		std::cout << "Reads are kmerize: " << m_kmerizePassed << "\n";
-		std::cout << "Reads are merged : "<< m_mergePassed << "\n";
-		std::cout << "Reads failed to kmerize or merge: " << m_qcFail << "\n";	
-	}
+	std::cout << "Reads are kmerized: " << m_kmerizePassed << "\n";
+	std::cout << "Reads are merged : "<< m_mergePassed << "\n";
+	std::cout << "Reads failed to kmerize or merge: " << m_qcFail << "\n";
 }
 
 
@@ -962,7 +657,6 @@ void FMIndexWalkPostProcess::process(const SequenceWorkItem& item, const FMIndex
 }
 
 // Writting results of FMW_HYBRID and FMW_MERGE
-//trimmatepair by chaohung 20151017
 void FMIndexWalkPostProcess::process(const SequenceWorkItemPair& itemPair, const FMIndexWalkResult& result)
 {
 	if (result.merge)
@@ -973,61 +667,6 @@ void FMIndexWalkPostProcess::process(const SequenceWorkItemPair& itemPair, const
 		else m_qcFail += 1;
 		if (result.kmerize2) m_kmerizePassed += 1;
 		else m_qcFail += 1;
-	}
-    //trimmatepair by chaohung 20151017
-    else if (  (m_params.algorithm == FMW_trimMatePair) )
-	{
-        if(result.head1)
-            m_r1_pass+=1;
-        if(result.head2)
-            m_r2_pass+=1;
-		if(result.trim)
-			m_trimPassed += 2;
-		if(result.tryMerge)
-			m_totalMerge+=1;
-		if(result.longmergeCount)
-			m_longSucc+=1;
-        else
-            switch(result.whyLongFail){
-				case -1:m_HighError+=1;break;
-				case -2:m_exceedSearchDepth+=1;break;
-				case -3:m_Repeat+=1;break;
-                case -4:m_Case4+=1;break;
-				default:
-				break;
-			}
-		if(result.shortmergeCount)
-			m_shortSucc+=1;
-        else
-            switch(result.whyShortFail){
-				case -1:m_HighError2+=1;break;
-				case -2:m_exceedSearchDepth2+=1;break;
-				case -3:m_Repeat2+=1;break;
-                case -4:m_Case42+=1;break;
-				default:
-				break;
-			}
-		/* if(result.whyLongFail<0 && result.whyShortFail<0)
-		{
-			switch(result.whyLongFail){
-				case -1:m_HighError+=1;break;
-				case -2:m_exceedSearchDepth+=1;break;
-				case -3:m_Repeat+=1;break;
-				case -4:m_Case4+=1;break;
-				default:
-				break;
-			}
-			switch(result.whyShortFail){
-				case -1:m_HighError2+=1;break;
-				case -2:m_exceedSearchDepth2+=1;break;
-				case -3:m_Repeat2+=1;break;
-				case -4:m_Case42+=1;break;
-				default:
-				break;
-			}
-		} */
-		if(result.polluted)
-			m_qcFail+=2;
 	}
 	else
         m_qcFail += 2;
@@ -1064,99 +703,6 @@ void FMIndexWalkPostProcess::process(const SequenceWorkItemPair& itemPair, const
 		{
 			secondRecord.seq = result.kmerizedReads2[i];
 			secondRecord.writeFasta(*m_pDiscardWriter,i);
-		}
-	}
-    //trimmatepair by chaohung 20151017
-    else if(m_params.algorithm == FMW_trimMatePair)
-	{
-		if(result.mergeMP)
-		{
-			SeqRecord mergeRecord ;
-			if(result.longmergeCount)
-			{
-				mergeRecord.id = firstRecord.id.substr (0, firstRecord.id.find('/') ) ;
-				mergeRecord.seq = result.correctSequence;
-				mergeRecord.write(*m_pLongReadWriter);
-			}
-			if(result.shortmergeCount)
-			{
-				mergeRecord.id = firstRecord.id.substr (0, firstRecord.id.find('/') ) ;
-				mergeRecord.seq = result.correctSequence;
-				mergeRecord.write(*m_pShortReadWriter);
-			}
-		}
-		if (result.trim) //result.trim: only merge fail will redirect here. ;result.tryMerge:all trim read will redirect here
-		{	
-            std::stringstream ss;
-			SeqRecord raw;
-			SeqRecord raw2;
-			SeqRecord trimRecord;
-			SeqRecord trimRecord2;
-            //matepair pair-end aligned output to file
-                /*
-                raw.id = firstRecord.id.substr(0);
-                raw.seq= firstRecord.seq.toString();
-                raw2.id = secondRecord.id.substr(0);
-                raw2.seq= secondRecord.seq.toString();
-                raw.write(*m_pCorrectedWriter);
-                raw2.write(*m_pCorrectedWriter); */
-            //matepair pair-end merge failure output raw and afterTrim read to File
-                 //raw r1
-                ss.str("");
-                ss<<result.whyLongFail<<" ";//Long Merge Failure reason
-                raw.id = firstRecord.id.substr(0)+ " "+ss.str();
-                ss.str("");
-                
-                //for(int i=0;i<result.c1;++i)//kmer freq
-                //    ss<<result.cs1[i]<<" ";
-                //raw.id = raw.id+"origin frqs: "+ss.str();
-                //raw.id = firstRecord.id.substr (0, firstRecord.id.find('/') )+ "/1";
-                raw.seq= firstRecord.seq.toString();
-                raw.write(*m_pCorrectedWriter);
-                //trimmed 1 
-                //ss.str("");
-                //ss<<result.rundownK1;
-                trimRecord.id = firstRecord.id.substr(0, firstRecord.id.find('/') )+"/1";// /trimmed Kmer= "+ss.str();
-                trimRecord.seq = result.correctSequence;
-                trimRecord.write(*m_pCorrectedWriter);
-                //origin 2
-                ss.str("");
-                ss<<result.whyLongFail<<" ";
-                raw2.id = secondRecord.id.substr(0)+ " "+ss.str();
-                ss.str("");
-                //for(int i=0;i<result.p1;++i)
-                //    ss<<result.ps1[i]<<" ";
-                //raw2.id = raw2.id+"origin frqs: "+ss.str();
-                //raw2.id = secondRecord.id.substr (0, secondRecord.id.find('/') )+ "/2";
-                raw2.seq= secondRecord.seq.toString();
-                raw2.write(*m_pCorrectedWriter);
-                //trimmed
-                //ss.str("");
-                //ss<<result.rundownK2;
-                trimRecord2.id = secondRecord.id.substr(0, firstRecord.id.find('/') )+"/2";// /trimmed Kmer= "+ss.str();
-                trimRecord2.seq = result.correctSequence2;
-                trimRecord2.write(*m_pCorrectedWriter); 
-            
-		}
-		if (result.polluted)
-		{
-			std::stringstream ss;
-			SeqRecord pollutedRecord;
-			SeqRecord pollutedRecord2;
-			//ss.str("");
-			/* for(int i=0;i<result.c1;++i)
-				ss<<result.cs1[i]<<" "; */
-            pollutedRecord.id = firstRecord.id.substr (0, firstRecord.id.find('/') )+ "/1";// origin frqs: "+ss.str();
-			//pollutedRecord.id = firstRecord.id.substr (0, firstRecord.id.find('/') )+ "/1";// /origin frqs:"+ss.str();
-			pollutedRecord.seq = result.pollutedSequence;
-			pollutedRecord.write(*m_pDiscardWriter);
-			//ss.str("");
-			/* for(int i=0;i<result.p1;++i)
-				ss<<result.ps1[i]<<" "; */
-            pollutedRecord2.id = secondRecord.id.substr(0, secondRecord.id.find('/') )+ "/2";// origin frqs: "+ss.str();
-			//pollutedRecord2.id = secondRecord.id.substr(0, secondRecord.id.find('/') )+ "/2";// /origin frqs:"+ss.str();
-			pollutedRecord2.seq = result.pollutedSequence2;
-			pollutedRecord2.write(*m_pDiscardWriter);
 		}
 	}
 }
