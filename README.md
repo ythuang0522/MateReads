@@ -9,17 +9,17 @@ MateReads is an experimental and extended module from StriDe assembler: https://
 
 and there will be an executable file named stride in the StriDe folder.
 
-# Execution of Matepair Extension
-matepair extension is modificated from FM-walk in StriDe.
-StriDe: https://github.com/ythuang0522/StriDe
+# Execution of MateReads
+The MateReads require input of paired-end reads (short insert) and mate-pair reads (long insert). The paired-end reads are used to construct an FM-index, which will be used to convert mate-pair reads into long reads. Suppose pe.fa represents paired-end reads and mate.fa is mate-pair reads. The following commment build the FM-index of short reads.
 
-Usage:
+      ./stride index -t 20 pe.fa
 
-./stride matepair -m 30 -M 90 -t 30 -L 64 -I 3500 -c 437 -x 3 -k 31 -p ecor inputfile.fa
+The following command converts mate-pair reads into long reads.
+
+      ./stride matepair -m 30 -M 90 -t 30 -L 64 -I 3500 -c 437 -x 3 -k 31 -p pe mate.fa
 
 ----------------------------------------------------------------------------------------------
-inputfile.fa : Input file(fasta), matepair should be outward and interleaved in the file.
-
+mate.fa : Input file(fasta), matepair should be outward and interleaved in the file.
 ----------------------------------------------------------------------------------------------
 
 Argument : 
@@ -38,7 +38,7 @@ Argument :
 
 -t : the threads to be used. 
 
--p : the prefix of FM-index file.
+-p : the prefix of FM-index of paired-end reads.
 
 -k : the kmer size for trimming kmer.
 
