@@ -18,9 +18,7 @@ The following command converts mate-pair reads into long reads.
 
       ./stride matepair -m 30 -M 90 -t 30 -L 64 -I 3500 -c 437 -x 3 -k 31 -p pe mate.fa
 
-----------------------------------------------------------------------------------------------
-mate.fa : Input file(fasta), matepair should be outward and interleaved in the file.
-----------------------------------------------------------------------------------------------
+Note that mate.fa (fasta) should be outward and interleaved in the file.
 
 Argument : 
 
