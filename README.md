@@ -1,3 +1,14 @@
+# Introduction
+MateReads is an experimental and extended module from StriDe assembler: https://github.com/ythuang0522/StriDe. It converts mate-pair reads from long insert library into super long reads, in order to provide additional scaffolding material (long reads) other than mate-pair reads. Theoretically, long reads can help scaffold highly-fragmented contigs where mate-pair reads over-span distant contigs and lose the adjacent linkage between small contigs in proximity.
+
+# To compile in your environment, type 
+
+      1. ./autogen.sh 
+      2. ./configure
+      3. make
+
+and there will be an executable file named stride in the StriDe folder.
+
 # Execution of Matepair Extension
 matepair extension is modificated from FM-walk in StriDe.
 StriDe: https://github.com/ythuang0522/StriDe
