@@ -10,11 +10,11 @@ MateReads is an experimental and extended module from StriDe assembler: https://
 and there will be an executable file named stride in the StriDe folder.
 
 # Execution of MateReads
-The MateReads require input of paired-end reads (short insert) and mate-pair reads (long insert). The paired-end reads are used to construct an FM-index, which will be used to convert mate-pair reads into long reads. Suppose pe.fa represents paired-end reads and mate.fa is mate-pair reads. The following commment build the FM-index of short reads.
+The MateReads require input of paired-end reads (short insert) and mate-pair reads (long insert). The paired-end reads are used to construct an FM-index, which will be used to convert mate-pair reads into long reads. Suppose pe.fa represents paired-end reads and mate.fa is mate-pair reads. The following commment build the FM-index of short reads (pe.fa).
 
       ./stride index -t 20 pe.fa
 
-The following command converts mate-pair reads into long reads.
+The following command converts mate-pair reads (mate.fa) into long reads (mate.merge.fa).
 
       ./stride matepair -m 30 -M 90 -t 30 -L 64 -I 3500 -c 437 -x 3 -k 31 -p pe mate.fa
 
@@ -46,10 +46,10 @@ Output:
 
 The program produce 4 files.
 
-1. inputfile.merge.fa : Long read sequences are reserved in this file.
+1. mate.merge.fa : Long read sequences are stored in this file.
 
-2. inputfile.shortIS.fa: Long read sequences, which lengths are shorter than the minimum insert size (-c option), are reserved in the file.
+2. mate.shortIS.fa: Possibly-contaminated short-insert reads.
 
-3. inputfile.trimmed.fa: Mate pair reads, which can't be converted into long sequences, are reserved in the file.
+3. mate.trimmed.fa: Mate pair reads failed to be converted into long sequences.
 
-4. inputfile.polluted.fa:  one of the end of mate pair reads can not be found sufficient k-mer in FM-index.
+4. mate.polluted.fa:  One end of mate pair reads is possibly contamination (i.e., no sufficient k-mer frequency).
